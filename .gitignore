@@ -1,0 +1,15 @@
+node_modules/
+.env
+*.log
+.DS_Store
+
+# Compiled JS output (SVGs are generated separately)
+dist/*.js
+dist/__tests__/
+
+# Asset files (sprites are embedded as base64 in code)
+*.zip
+*.psd
+*.gif
+*.png
+slashes/

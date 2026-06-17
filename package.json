@@ -1,0 +1,32 @@
+{
+  "name": "contribution-crawl",
+  "version": "1.0.0",
+  "description": "Turn your GitHub contribution graph into an animated dungeon crawler adventure",
+  "main": "dist/index.js",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:MaskiCoding/Contribution-Crawl.git"
+  },
+  "scripts": {
+    "build": "tsc",
+    "generate": "node dist/index.js",
+    "test": "node --import tsx --test src/__tests__/*.test.ts",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\""
+  },
+  "dependencies": {
+    "@octokit/graphql": "^7.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^20.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.7.4",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.0.0"
+  }
+}
