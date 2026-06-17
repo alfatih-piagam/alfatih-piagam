@@ -2,12 +2,9 @@
 
 ## 🛠️ Tech Stack
 
-[![JavaScript x15](https://img.shields.io/badge/JavaScript-x15-F7DF1E?style=flat&logo=javascript&logoColor=white)]
-[![CSS x14](https://img.shields.io/badge/CSS-x14-1572B6?style=flat&logo=css3&logoColor=white)]
-[![HTML x12](https://img.shields.io/badge/HTML-x12-E34C26?style=flat&logo=html5&logoColor=white)]
-[![TypeScript x2](https://img.shields.io/badge/TypeScript-x2-3178C6?style=flat&logo=typescript&logoColor=white)]
-[![Python x3](https://img.shields.io/badge/Python-x3-3776AB?style=flat&logo=python&logoColor=white)]
-[![Rust x1](https://img.shields.io/badge/Rust-x1-CE422B?style=flat&logo=rust&logoColor=white)]
+<!-- STACK START -->
+[![Tech stack](https://img.shields.io/badge/Stack-Generating...-grey?style=flat)]
+<!-- STACK END -->
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./dist/contribution-crawl-dark.svg">

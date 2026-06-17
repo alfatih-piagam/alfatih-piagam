@@ -16,6 +16,7 @@ const techBadges = {
   JavaScript: { color: 'F7DF1E', logo: 'javascript' },
   Python: { color: '3776AB', logo: 'python' },
   Java: { color: '007396', logo: 'java' },
+  Kotlin: { color: '0095D5', logo: 'kotlin' },
   Go: { color: '00ADD8', logo: 'go' },
   Rust: { color: 'CE422B', logo: 'rust' },
   React: { color: '61DAFB', logo: 'react' },
@@ -36,31 +37,35 @@ const languageToTech = {
   JavaScript: 'JavaScript',
   Python: 'Python',
   Java: 'Java',
+  Kotlin: 'Kotlin',
   Go: 'Go',
   Rust: 'Rust',
   HTML: 'HTML',
   CSS: 'CSS',
   PHP: 'PHP',
   C: 'C',
-  Cpp: 'C++',
-  Csharp: 'C#',
+  'C++': 'C++',
+  'C#': 'C#',
   Ruby: 'Ruby',
   Swift: 'Swift',
-  Kotlin: 'Kotlin',
 };
 
 async function fetchRepos() {
   console.log(`🔍 Fetching repos for ${GITHUB_USERNAME}...`);
 
   const query = `
-    query($userName:String!) {
+    query($userName:String!, $after:String) {
       user(login: $userName) {
-        repositories(first: 100, orderBy: {field: UPDATED_AT, direction: DESC}, privacy: PUBLIC) {
+        repositories(first: 100, after: $after, orderBy: {field: UPDATED_AT, direction: DESC}, privacy: PUBLIC) {
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
           nodes {
             name
             description
             url
-            languages(first: 5) {
+            languages(first: 100, orderBy: {field: SIZE, direction: DESC}) {
               nodes {
                 name
               }
@@ -74,41 +79,68 @@ async function fetchRepos() {
   `;
 
   try {
-    const response = await fetch('https://api.github.com/graphql', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
-      },
-      body: JSON.stringify({
-        query,
-        variables: { userName: GITHUB_USERNAME },
-      }),
-    });
+    const repos = [];
+    let after = null;
 
-    const data = await response.json();
+    while (true) {
+      const response = await fetch('https://api.github.com/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+        },
+        body: JSON.stringify({
+          query,
+          variables: { userName: GITHUB_USERNAME, after },
+        }),
+      });
 
-    if (data.errors) {
-      throw new Error(`GraphQL error: ${data.errors[0].message}`);
+      const data = await response.json();
+
+      if (data.errors) {
+        throw new Error(`GraphQL error: ${data.errors[0].message}`);
+      }
+
+      const page = data.data.user.repositories;
+      repos.push(...page.nodes);
+
+      if (!page.pageInfo.hasNextPage) break;
+      after = page.pageInfo.endCursor;
     }
 
-    return data.data.user.repositories.nodes;
+    return repos;
   } catch (error) {
     console.error('❌ Failed to fetch repos:', error.message);
     process.exit(1);
   }
 }
 
-function generateBadgesForRepo(languages) {
-  return languages
-    .map((lang) => {
-      const tech = languageToTech[lang.name];
-      if (!tech || !techBadges[tech]) return null;
+function generateTechStackMarkdown(repos) {
+  const counts = {};
 
+  repos.forEach((repo) => {
+    const repoTechs = new Set(
+      repo.languages.nodes
+        .map((lang) => languageToTech[lang.name])
+        .filter((tech) => tech && techBadges[tech])
+    );
+
+    repoTechs.forEach((tech) => {
+      counts[tech] = (counts[tech] || 0) + 1;
+    });
+  });
+
+  const sortedTechs = Object.entries(counts).sort((a, b) => {
+    if (b[1] !== a[1]) return b[1] - a[1];
+    return a[0].localeCompare(b[0]);
+  });
+
+  return sortedTechs
+    .map(([tech, count]) => {
       const badge = techBadges[tech];
-      return `![${tech}](https://img.shields.io/badge/${tech}-${badge.color}?style=flat&logo=${badge.logo}&logoColor=white)`;
+      const label = encodeURIComponent(`${tech} x${count}`);
+      return `[![${tech} x${count}](https://img.shields.io/badge/${label}-${badge.color}?style=flat&logo=${badge.logo}&logoColor=white)]`;
     })
-    .filter(Boolean)
     .join(' ');
 }
 
@@ -116,7 +148,6 @@ function generateReposMarkdown(repos) {
   let markdown = '## 📚 My Repositories\n\n';
 
   repos.forEach((repo) => {
-    const badges = generateBadgesForRepo(repo.languages.nodes);
     const stars = repo.stars > 0 ? ` ⭐ ${repo.stars}` : '';
     const forks = repo.forks > 0 ? ` 🍴 ${repo.forks}` : '';
 
@@ -124,29 +155,37 @@ function generateReposMarkdown(repos) {
     if (repo.description) {
       markdown += `${repo.description}\n`;
     }
-    if (badges) {
-      markdown += `\n${badges}\n`;
-    }
     markdown += `${stars}${forks}\n\n`;
   });
 
   return markdown;
 }
 
-async function updateReadme(reposMarkdown) {
+async function updateReadme(reposMarkdown, stackMarkdown) {
   const readmePath = path.join(__dirname, '../README.md');
   let content = fs.readFileSync(readmePath, 'utf-8');
 
-  const startMarker = '<!-- REPOS START -->';
-  const endMarker = '<!-- REPOS END -->';
+  const stackStartMarker = '<!-- STACK START -->';
+  const stackEndMarker = '<!-- STACK END -->';
+  const reposStartMarker = '<!-- REPOS START -->';
+  const reposEndMarker = '<!-- REPOS END -->';
 
-  if (content.includes(startMarker) && content.includes(endMarker)) {
-    const before = content.substring(0, content.indexOf(startMarker) + startMarker.length);
-    const after = content.substring(content.indexOf(endMarker));
+  if (content.includes(stackStartMarker) && content.includes(stackEndMarker)) {
+    const before = content.substring(0, content.indexOf(stackStartMarker) + stackStartMarker.length);
+    const after = content.substring(content.indexOf(stackEndMarker));
+    content = before + '\n' + stackMarkdown + '\n' + after;
+  } else if (content.includes('## 🛠️ Tech Stack') && content.includes(reposStartMarker)) {
+    const before = content.substring(0, content.indexOf('## 🛠️ Tech Stack'));
+    const after = content.substring(content.indexOf(reposStartMarker));
+    content = before + `## 🛠️ Tech Stack\n\n${stackStartMarker}\n${stackMarkdown}\n${stackEndMarker}\n\n` + after;
+  }
+
+  if (content.includes(reposStartMarker) && content.includes(reposEndMarker)) {
+    const before = content.substring(0, content.indexOf(reposStartMarker) + reposStartMarker.length);
+    const after = content.substring(content.indexOf(reposEndMarker));
     content = before + '\n' + reposMarkdown + '\n' + after;
   } else {
-    // Append at the end if markers don't exist
-    content += '\n' + startMarker + '\n' + reposMarkdown + '\n' + endMarker + '\n';
+    content += '\n' + reposStartMarker + '\n' + reposMarkdown + '\n' + reposEndMarker + '\n';
   }
 
   fs.writeFileSync(readmePath, content);
@@ -158,8 +197,9 @@ async function main() {
     const repos = await fetchRepos();
     console.log(`📊 Found ${repos.length} public repositories`);
 
+    const stackMarkdown = generateTechStackMarkdown(repos);
     const reposMarkdown = generateReposMarkdown(repos);
-    await updateReadme(reposMarkdown);
+    await updateReadme(reposMarkdown, stackMarkdown);
 
     console.log('✨ Done!');
   } catch (error) {
