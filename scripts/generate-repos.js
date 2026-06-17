@@ -10,6 +10,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_USERNAME = 'alfatih-piagam';
 
+if (!GITHUB_TOKEN) {
+  console.error('❌ GITHUB_TOKEN is required to generate the README stack and repository list.');
+  console.error('   Run: GITHUB_TOKEN=your_token npm run generate:repos');
+  process.exit(1);
+}
+
 // Tech stack badge configuration
 const techBadges = {
   TypeScript: { color: '3178C6', logo: 'typescript' },
