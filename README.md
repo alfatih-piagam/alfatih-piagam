@@ -1,13 +1,9 @@
-# ⚔️ Contribution Crawl
-
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Contributors][contributors-shield]][contributors-url]
+# Al Fatih Zainul Falah (Kirin)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/MaskiCoding/Contribution-Crawl/main/dist/contribution-crawl-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/MaskiCoding/Contribution-Crawl/main/dist/contribution-crawl-light.svg">
-  <img alt="Contribution Crawl animation" src="https://raw.githubusercontent.com/MaskiCoding/Contribution-Crawl/main/dist/contribution-crawl-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="./dist/contribution-crawl-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="./dist/contribution-crawl-light.svg">
+  <img alt="Contribution Crawl animation" src="./dist/contribution-crawl-light.svg">
 </picture>
 
 <!-- MARKDOWN LINKS & IMAGES -->
