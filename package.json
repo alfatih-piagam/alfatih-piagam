@@ -11,6 +11,7 @@
   "scripts": {
     "build": "tsc",
     "generate": "node dist/index.js",
+    "generate:repos": "node scripts/generate-repos.js",
     "test": "node --import tsx --test src/__tests__/*.test.ts",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
@@ -18,7 +19,8 @@
     "format:check": "prettier --check \"src/**/*.ts\""
   },
   "dependencies": {
-    "@octokit/graphql": "^7.0.0"
+    "@octokit/graphql": "^7.0.0",
+    "dotenv": "^16.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
