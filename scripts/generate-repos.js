@@ -150,20 +150,43 @@ function generateTechStackMarkdown(repos) {
     .join(' ');
 }
 
+function escapeMarkdownCell(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/\|/g, '\\|')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, ' ');
+}
+
+function formatRepoCell(repo) {
+  const description = repo.description ? `<br>${escapeMarkdownCell(repo.description)}` : '';
+  const stats = [repo.stars > 0 ? `⭐ ${repo.stars}` : null, repo.forks > 0 ? `🍴 ${repo.forks}` : null]
+    .filter(Boolean)
+    .join(' · ');
+
+  return `**[${repo.name}](${repo.url})**${description}${stats ? `<br>${stats}` : ''}`;
+}
+
 function generateReposMarkdown(repos) {
-  let markdown = '## 📚 My Repositories\n\n';
+  const columns = 5;
+  const rows = [];
 
-  repos.forEach((repo) => {
-    const stars = repo.stars > 0 ? ` ⭐ ${repo.stars}` : '';
-    const forks = repo.forks > 0 ? ` 🍴 ${repo.forks}` : '';
+  for (let i = 0; i < repos.length; i += columns) {
+    rows.push(repos.slice(i, i + columns));
+  }
 
-    markdown += `### [${repo.name}](${repo.url})\n`;
-    if (repo.description) {
-      markdown += `${repo.description}\n`;
-    }
-    markdown += `${stars}${forks}\n\n`;
+  let markdown = '## 📚 My Repositories\n\n<div align="center">\n\n';
+  markdown += '| ' + Array(columns).fill('Repository').join(' | ') + ' |\n';
+  markdown += '| ' + Array(columns).fill('---').join(' | ') + ' |\n';
+
+  rows.forEach((chunk) => {
+    markdown += '| ' +
+      chunk.map(formatRepoCell).concat(Array(columns - chunk.length).fill(' ')).join(' | ') +
+      ' |\n';
   });
 
+  markdown += '\n</div>\n';
   return markdown;
 }
 
